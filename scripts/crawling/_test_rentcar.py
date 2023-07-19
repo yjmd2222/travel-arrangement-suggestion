@@ -117,4 +117,9 @@ if __name__ == '__main__':
 
     rentcar(date_combos[5][0], date_combos[5][1], s_times[2], e_times[6])
 
+    # for combo in date_combos:
+    #     for s_time in s_times:
+    #         for e_time in e_times:
+    #             rentcar(combo[0], combo[1], s_time, e_time)
+
     driver.quit()
