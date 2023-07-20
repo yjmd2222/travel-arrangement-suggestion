@@ -14,7 +14,7 @@ def parse_date(date_: datetime):
     '''datetime 'yyyy-mm-dd' 형식 str으로 반환'''
     return date_.strftime(r"%Y-%m-%d")
 
-def rentcar_crawl(s_date_obj: datetime, e_date_obj: datetime, s_time='12:00', e_time='12:00'):
+def rentcar_crawl(driver, s_date_obj: datetime, e_date_obj: datetime, s_time='12:00', e_time='12:00'):
     '입력한 시간/날짜에 따라 크롤링 진행'
     driver.get('https://www.jeju.com/item/ren_meta.html?agt=jeju')
 
@@ -276,6 +276,6 @@ if __name__ == '__main__':
     date_combos = get_date_combinations(s_date)
 
     for combo in date_combos:
-        rentcar_crawl(combo[0], combo[1])
+        rentcar_crawl(driver, combo[0], combo[1])
 
     driver.quit()
