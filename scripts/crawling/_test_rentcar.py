@@ -149,8 +149,8 @@ def rentcar_sql(wrap, s_date_obj: datetime, e_date_obj: datetime, s_time, e_time
     brand = wrap.find(class_='car_enter').text.strip()
     s_timestamp = s_date_obj.timestamp()
     e_timestamp = e_date_obj.timestamp()
-    s_date = s_date_obj.strftime('%Y-%m-%D')
-    e_date = e_date_obj.strftime('%Y-%m-%D')
+    s_date = s_date_obj.strftime(r'%Y-%m-%d')
+    e_date = e_date_obj.strftime(r'%Y-%m-%d')
     s_time = s_time + ':00'
     e_time = e_time + ':00'
     times = [s_timestamp, e_timestamp, s_date, e_date, s_time, e_time]
