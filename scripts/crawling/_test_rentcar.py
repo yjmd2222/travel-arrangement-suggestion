@@ -1,11 +1,11 @@
 import time
+import traceback
 import sqlite3
 
 from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import Select
-from selenium.common.exceptions import NoSuchElementException
 
 from bs4 import BeautifulSoup
 
@@ -33,6 +33,8 @@ def rentcar_crawl(s_date, e_date, s_time, e_time):
     s_date, e_date: datetime\n
     s_time, e_time: str('HH:MM')
     '''
+    driver.get('https://homepage.skcarrental.com/')
+
     s_date_obj, s_date = parse_date(s_date, s_time)
     e_date_obj, e_date = parse_date(e_date, e_time)
 
@@ -72,13 +74,10 @@ def rentcar_crawl(s_date, e_date, s_time, e_time):
     time.sleep(0.5)
 
     # 차량 조회하고 예약하기 클릭
-    try:
-        search = driver.find_element(By.XPATH, r'//*[text()="차량 조회하고 예약하기"]')
-    except NoSuchElementException:
-        search = driver.find_element(By.XPATH, r'//*[text()="재검색"]')
+    search = driver.find_element(By.XPATH, r'//*[text()="차량 조회하고 예약하기"]')
 
     search.click()
-    time.sleep(3)
+    time.sleep(10)
 
     # html parse
     html = driver.page_source
@@ -157,13 +156,22 @@ def rentcar_sql(wrap, s_date_obj: datetime, e_date_obj: datetime, s_time, e_time
     for item in wrap.find_all(class_='list_item'):
         if '예약마감' in item.text:
             continue
-        model = item.find(class_='main_name').text.strip()
-        year_and_capacity = item.find(class_='sb_text').text.strip()
-        regular_price = int(item.find(class_='price_regular').text.strip().replace('원', '').replace(',', '').replace('\u200c',''))
-        sale_price = int(item.find(class_='price_sale').text.strip().replace('원', '').replace(',', '').replace('\u200c',''))
-        discount_rate = int(item.find(class_='rate').text.strip('%').replace('\u200c',''))
-        send_data.append([brand, model, year_and_capacity, regular_price, sale_price, discount_rate]+times)
-        print(send_data)
+        try:
+            model = item.find(class_='main_name').text.strip()
+            year_and_capacity = item.find(class_='sb_text').text.strip()
+            regular_price = int(item.find(class_='price_regular').text.strip().replace('원', '').replace(',', '').replace('\u200c',''))
+            sale_price = int(item.find(class_='price_sale').text.strip().replace('원', '').replace(',', '').replace('\u200c',''))
+            discount_rate = int(item.find(class_='rate').text.strip('%').replace('\u200c',''))
+            send_data.append([brand, model, year_and_capacity, regular_price, sale_price, discount_rate]+times)
+            print(send_data)
+        except ValueError as error:
+            print(f'데이터 parsing 중 오류: {error}')
+            traceback.print_exc()
+
+    if not send_data:
+        conn.commit()
+        conn.close()
+        return
 
     sql_send = f'''INSERT INTO cars ({', '.join(columns).replace("'", '')})
     VALUES {str(('?',)*len(columns)).replace("'", '')}
@@ -172,6 +180,7 @@ def rentcar_sql(wrap, s_date_obj: datetime, e_date_obj: datetime, s_time, e_time
     cursor.executemany(sql_send, send_data)
     conn.commit()
     conn.close()
+    return
 
 # s_time == 07:30-22:00, e_time == 06:00-21:00
 s_time_h_range = list(range(8,22))
@@ -181,7 +190,6 @@ e_times = [f'{str(i).zfill(2)}:00' for i in e_time_h_range] + [f'{str(i).zfill(2
 
 if __name__ == '__main__':
     driver = webdriver.Chrome()
-    driver.get('https://homepage.skcarrental.com/')
     driver.maximize_window()
 
     s_date = datetime.today() + timedelta(days=1)
