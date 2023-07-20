@@ -115,7 +115,7 @@ def rentcar_sql(wrap, s_date_obj: datetime, e_date_obj: datetime, s_time, e_time
     cursor = conn.cursor()
 
     # column 이름
-    columns = ['brand', 'model', 'year_seating_capacity_etc', 'regular_price', 'sale_price', 'disccount_rate', 'reservation_status', 'start_timestamp', 'end_timestamp', 'start_date', 'end_date', 'start_time', 'end_time']
+    columns = ['brand', 'model', 'year_seating_capacity_etc', 'regular_price', 'sale_price', 'disccount_rate', 'start_timestamp', 'end_timestamp', 'start_date', 'end_date', 'start_time', 'end_time']
 
     # ### DANGER ZONE
     # time.sleep(30)
@@ -134,7 +134,6 @@ def rentcar_sql(wrap, s_date_obj: datetime, e_date_obj: datetime, s_time, e_time
         {next(col_iter)} INTEGER,
         {next(col_iter)} INTEGER,
         {next(col_iter)} INTEGER,
-        {next(col_iter)} VARCHAR(10),
         {next(col_iter)} TIMESTAMP,
         {next(col_iter)} TIMESTAMP,
         {next(col_iter)} DATE,
@@ -156,13 +155,14 @@ def rentcar_sql(wrap, s_date_obj: datetime, e_date_obj: datetime, s_time, e_time
     times = [s_timestamp, e_timestamp, s_date, e_date, s_time, e_time]
 
     for item in wrap.find_all(class_='list_item'):
+        if '예약마감' in item.text:
+            continue
         model = item.find(class_='main_name').text.strip()
         year_and_capacity = item.find(class_='sb_text').text.strip()
         regular_price = int(item.find(class_='price_regular').text.strip().replace('원', '').replace(',', '').replace('\u200c',''))
         sale_price = int(item.find(class_='price_sale').text.strip().replace('원', '').replace(',', '').replace('\u200c',''))
         discount_rate = int(item.find(class_='rate').text.strip('%').replace('\u200c',''))
-        reservation_status = 'reserved' if '예약마감' in item.text else 'unreserved'
-        send_data.append([brand, model, year_and_capacity, regular_price, sale_price, discount_rate, reservation_status]+times)
+        send_data.append([brand, model, year_and_capacity, regular_price, sale_price, discount_rate]+times)
         print(send_data)
 
     sql_send = f'''INSERT INTO cars ({', '.join(columns).replace("'", '')})
