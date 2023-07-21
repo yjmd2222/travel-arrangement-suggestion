@@ -1,10 +1,10 @@
-import time
 import csv
 
 from datetime import datetime, timedelta
 from selenium import webdriver
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import Select
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.support.ui import Select, WebDriverWait
 
 from bs4 import BeautifulSoup
 
@@ -14,60 +14,50 @@ def parse_date(date_: datetime):
     '''datetime 'yyyy-mm-dd' 형식 str으로 반환'''
     return date_.strftime(r"%Y-%m-%d")
 
-def rentcar_crawl(driver, s_date_obj: datetime, e_date_obj: datetime, s_time='12:00', e_time='12:00'):
+def rentcar_crawl(driver: webdriver.Chrome, s_date_obj: datetime, e_date_obj: datetime, s_time='12:00', e_time='12:00'):
     '입력한 시간/날짜에 따라 크롤링 진행'
     driver.get('https://www.jeju.com/item/ren_meta.html?agt=jeju')
 
     s_date = parse_date(s_date_obj)
     e_date = parse_date(e_date_obj)
 
-    print(f'{s_date}에서 {e_date} 렌트 조회시작')
-
-    # sleep
-    time.sleep(5)
+    print(f'{datetime.now().strftime("%H:%M:%S")}: {s_date} {s_time}에서 {e_date} {e_time}까지 렌트 조회시작')
 
     # 날짜 선택
     date_1 = driver.find_element(By.CLASS_NAME, 'date-selector')
     date_1.click()
-    time.sleep(0.5)
 
     # 시작일
     date_1 = driver.find_element(By.XPATH, rf'//*[@title="{s_date}"]')
     date_1.click()
-    time.sleep(0.5)
 
     # 종료일
     date_2 = driver.find_element(By.XPATH, rf'//*[@title="{e_date}"]')
     date_2.click()
-    time.sleep(0.5)
 
     # 시작 시각
     rent_time = driver.find_elements(By.NAME, 'shm')[1]
     rent_time_select = Select(rent_time)
     rent_time_select.select_by_value(s_time)
-    time.sleep(0.5)
 
     # 종료 시각
     return_time = driver.find_elements(By.NAME, 'ehm')[1]
     return_time_select = Select(return_time)
     return_time_select.select_by_value(e_time)
-    time.sleep(0.5)
 
     # 적용하기 클릭
     done = driver.find_element(By.ID, 'btn_apply_date')
     done.click()
-    time.sleep(0.5)
 
     # 가격 비교하기 클릭
     done = driver.find_element(By.CLASS_NAME, 'btn-search')
     done.click()
-    time.sleep(5)
 
     # 각 차량마다 더보기 클릭
     more = driver.find_elements(By.CLASS_NAME, 'dummy-text')
-    for i in more:
-        i.click()
-        time.sleep(0.01)
+    if more:
+        for i in more:
+            i.click()
 
     # html parse
     html = driver.page_source
@@ -76,7 +66,7 @@ def rentcar_crawl(driver, s_date_obj: datetime, e_date_obj: datetime, s_time='12
     #전체 결과 block
     prod_list = soup.select('#dummy_prd_list section')
 
-    rentcar_csv(prod_list, s_date, e_date)
+    rentcar_csv(prod_list, s_date, e_date, s_time, e_time)
 
 def get_date_combinations(start_date, days=30):
     'start_date부터 days일 후까지 가능한 시작/종료일 조합'
@@ -89,9 +79,9 @@ def get_date_combinations(start_date, days=30):
     return combinations_list
 
 # csv 칼럼이름
-columns = ['car_name', 'brand_name', 'seats', 'size', 'fuel_type', 'transmission_type', 'rental_company_name', 'age_req', 'driving_experice', 'year', 'ratings', 'num_ratings', 'price', 'start_date', 'end_date']
+columns = ['car_name', 'brand_name', 'seats', 'size', 'fuel_type', 'transmission_type', 'rental_company_name', 'age_req', 'driving_experice', 'year', 'ratings', 'num_ratings', 'price', 'start_date', 'end_date', 'start_time', 'end_time']
 
-def rentcar_csv(prod_list, s_date, e_date):
+def rentcar_csv(prod_list, s_date, e_date, s_time, e_time):
     'csv로 저장'
     file_name = 'cars.csv'
     file_exists = False
@@ -228,7 +218,7 @@ def rentcar_csv(prod_list, s_date, e_date):
 </section>
     '''
     data_list = []
-    rental_dates = [s_date, e_date]
+    rental_times = [s_date, e_date, s_time, e_time]
     for section in prod_list:
         try:
             car_name = section.select_one('.car-name b').text.strip()
@@ -258,7 +248,7 @@ def rentcar_csv(prod_list, s_date, e_date):
                                   ratings,
                                   num_ratings,
                                   price]
-                                  + rental_dates)
+                                  + rental_times)
         except Exception as error:
             print(f'{section} 처리 중 예외 상황 발생. 종류: {type(error).__name__}, 메시지: {error}')
 
@@ -270,6 +260,7 @@ def rentcar_csv(prod_list, s_date, e_date):
 
 if __name__ == '__main__':
     driver = webdriver.Chrome()
+    driver.implicitly_wait(5)
     driver.maximize_window()
 
     s_date = datetime.today() + timedelta(days=1)
