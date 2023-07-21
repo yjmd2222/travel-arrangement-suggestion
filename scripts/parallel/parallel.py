@@ -1,6 +1,4 @@
 from selenium import webdriver
-from selenium.common.exceptions import SessionNotCreatedException
-from selenium.webdriver.chrome.options import Options
 from concurrent import futures
 from datetime import datetime, timedelta
 
@@ -21,8 +19,8 @@ def selenium_title(combo):
     # options.add_argument('--headless')
     try:
         driver = webdriver.Chrome()
-    except SessionNotCreatedException:
-        return None
+    except Exception as error:
+        print(f'에러: {type(error).__name__}, 메시지: {error}')
     driver.maximize_window()
     try:
         rentcar_crawl(driver, *combo)
@@ -32,5 +30,5 @@ def selenium_title(combo):
     driver.quit()
     return title
 
-with futures.ThreadPoolExecutor() as executor: # default/optimized number of threads
+with futures.ThreadPoolExecutor() as executor:
     titles = list(executor.map(selenium_title, full_combos))
