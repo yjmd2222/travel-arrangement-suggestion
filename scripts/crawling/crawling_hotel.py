@@ -3,7 +3,7 @@ import time
 
 from datetime import datetime, timedelta
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
 from selenium.webdriver.common.by import By
 
 from bs4 import BeautifulSoup
@@ -16,7 +16,7 @@ def parse_date(date_: datetime):
     '''datetime 'yyyy-mm-dd' 형식 str으로 반환'''
     return date_.strftime(r"%Y-%m-%d")
 
-def try_find_element(*args, click=False, find_all=False):
+def try_find_element(driver, *args, click=False, find_all=False):
     '''
     셀레니움 element 찾기 try-except wrapper로 구성\n
     *args: (by, value)들로 구성된 튜플 -> ((by, value),)\n
@@ -36,26 +36,29 @@ def try_find_element(*args, click=False, find_all=False):
                     else:
                         return element
             break
-        except NoSuchElementException:
+        except (NoSuchElementException, ElementClickInterceptedException):
             print('팝업 종료')
-            close_popup = driver.find_element(By.XPATH, r'//*[@aria-label="로그인 혜택 안내 창 닫기."]')
-            close_popup.click()
+            try:
+                close_popup = driver.find_element(By.XPATH, r'//*[@aria-label="로그인 혜택 안내 창 닫기."]')
+                close_popup.click()
+            except Exception as error:
+                print(f'에러: {type(error).__name__}, 메시지: {error}')
     return None
 
-def hotel_crawl(s_date: datetime, e_date: datetime):
+def hotel_crawl(driver, s_date: datetime, e_date: datetime):
     '입력한 시간/날짜에 따라 크롤링 진행'
-    print(f'{s_date}에서 {e_date} 숙박 조회시작')
-
     s_date = parse_date(s_date)
     e_date = parse_date(e_date)
 
+    print(f'{s_date}에서 {e_date} 숙박 조회시작')
+
     # 날짜 박스 + 시작 + 종료일 클릭
-    try_find_element((By.CLASS_NAME, 'b91c144835'), (By.XPATH, rf'//*[@data-date="{s_date}"]'), (By.XPATH, rf'//*[@data-date="{e_date}"]'), click=True)
+    try_find_element(driver, (By.CLASS_NAME, 'b91c144835'), (By.XPATH, rf'//*[@data-date="{s_date}"]'), (By.XPATH, rf'//*[@data-date="{e_date}"]'), click=True)
 
     # 적용하기 클릭
-    try_find_element((By.XPATH, r'//*[@type="submit"]'), click=True)
+    try_find_element(driver, (By.XPATH, r'//*[@type="submit"]'), click=True)
     
-    page_num_elements = try_find_element((By.CSS_SELECTOR, '.fc63351294.f9c5690c58'), find_all=True)
+    page_num_elements = try_find_element(driver, (By.CSS_SELECTOR, '.fc63351294.f9c5690c58'), find_all=True)
 
     # 다음 페이지로 넘김
     for idx, element in enumerate(page_num_elements[:4]):
@@ -127,7 +130,7 @@ if __name__ == '__main__':
     date_combos = get_date_combinations(s_date)
 
     for combo in date_combos:
-        hotel_crawl(combo[0], combo[1])
+        hotel_crawl(driver, combo[0], combo[1])
 
     driver.quit()
 
