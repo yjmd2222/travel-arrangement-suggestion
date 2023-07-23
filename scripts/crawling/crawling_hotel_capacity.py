@@ -62,7 +62,7 @@ def hotel_crawl(driver, s_date: datetime, e_date: datetime, page_idx_=-1, cap_id
     s_date_str = parse_date(s_date)
     e_date_str = parse_date(e_date)
 
-    print(f'{s_date_str}에서 {e_date_str} 숙박 조회시작. 페이지: {page_idx_}')
+    print(f'{s_date_str}에서 {e_date_str} 숙박 조회시작. 인원수: {cap_idx_}, 페이지: {page_idx_}')
 
     time.sleep(5)
     # 날짜 박스 + 시작 + 종료일 클릭
@@ -87,7 +87,7 @@ def hotel_crawl(driver, s_date: datetime, e_date: datetime, page_idx_=-1, cap_id
         else:
             # 오류난 페이지 cap 재설정: idx 일치할 때까지 + 클릭
             if cap_idx_ == cap_idx:
-                try_find_element(driver, (By.CSS_SELECTOR, inc_css)*cap_idx, click=True)
+                try_find_element(driver, *(((By.CSS_SELECTOR, inc_css),)*cap_idx), click=True)
             # 전부 조회하는 경우 하나씩
             elif cap_idx_ == -1:
                 try_find_element(driver, (By.CSS_SELECTOR, inc_css), click=True)

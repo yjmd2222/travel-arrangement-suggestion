@@ -64,15 +64,15 @@ if __name__ == '__main__':
 
         def parse_datetime_tuple(s):
             # 문자열을 분리하여 datetime 구성 요소 추출
-            parts = s.strip().split(',')
+            parts = s.strip().split(',')[1:]
             # parts = [date[18:].split(', ') for date in parts]
-            date_combo = [datetime.strptime(date, r'%Y-%m-%d %H:%M') for date in parts[1:3]]
-            idx_combo = [int(idx_) for idx_ in parts[3:]]
+            date_combo = [datetime.strptime(date, r'%Y-%m-%d %H:%M') for date in parts[:2]]
+            idx_combo = [int(idx_) for idx_ in parts[2:]]
             return tuple(date_combo), idx_combo
 
         date_combos = []
         idx_combos = []
-        dates_path = 'data/raw/failed_times.txt'
+        dates_path = 'data/raw/failed_times_pages.txt'
 
         with open(dates_path, 'r') as file:
             for line in file:
@@ -87,10 +87,13 @@ if __name__ == '__main__':
                                                                    5,
                                                                    y), date_combos, idx_combos))
         fail_logs = ['failed_times.txt', 'failed_times_pages.txt']
-        reloc_failed_logs = ['data/raw/'+log for log in fail_logs]
+        reloc_fail_logs = ['data/raw/'+log for log in fail_logs]
         for idx in range(2):
             if os.path.exists(fail_logs[idx]):
-                shutil.copy(fail_logs[idx], reloc_failed_logs[idx])
+                shutil.copy(fail_logs[idx], reloc_fail_logs[idx])
+                os.remove(fail_logs[idx])
+            elif os.path.exists(reloc_fail_logs[idx]):
+                os.remove(reloc_fail_logs[idx])
 
-    parallel_hotel_crawling()
-    # parallel_hotel_crawling_failed()
+    # parallel_hotel_crawling()
+    parallel_hotel_crawling_failed()
