@@ -3,14 +3,18 @@ import time
 
 from datetime import datetime, timedelta
 from selenium import webdriver
-from selenium.common.exceptions import NoSuchElementException, ElementClickInterceptedException
+from selenium.common.exceptions import (
+    NoSuchElementException,
+    ElementClickInterceptedException,
+    ElementNotInteractableException,
+    StaleElementReferenceException)
 from selenium.webdriver.common.by import By
 
 from bs4 import BeautifulSoup
 
 from itertools import combinations
 
-columns = ['url', 'hotel_name','region','ratings', 'price', 'start_date', 'end_date']
+columns = ['url', 'hotel_name','region','ratings', 'price', 'start_date', 'end_date', 'page_idx']
 
 def parse_date(date_: datetime):
     '''datetime 'yyyy-mm-dd' 형식 str으로 반환'''
@@ -25,6 +29,7 @@ def try_find_element(driver, *args, click=False, find_all=False):
     None이 아닌 경우는 element 또는 element list 반환
     '''
     while True:
+        count = 0
         try:
             for tuple_ in args:
                 if find_all:
@@ -36,8 +41,12 @@ def try_find_element(driver, *args, click=False, find_all=False):
                     else:
                         return element
             break
-        except (NoSuchElementException, ElementClickInterceptedException):
-            print('팝업 종료')
+        except (NoSuchElementException, ElementClickInterceptedException, ElementNotInteractableException, StaleElementReferenceException) as error:
+            count += 1
+            if count == 3:
+                print('팝업 종료 시도 3회 실패')
+                raise Exception
+            # print(f'팝업 종료 시도. 에러: {type(error).__name__}')
             try:
                 close_popup = driver.find_element(By.XPATH, r'//*[@aria-label="로그인 혜택 안내 창 닫기."]')
                 close_popup.click()
@@ -45,36 +54,60 @@ def try_find_element(driver, *args, click=False, find_all=False):
                 print(f'에러: {type(error).__name__}, 메시지: {error}')
     return None
 
-def hotel_crawl(driver, s_date: datetime, e_date: datetime):
-    '입력한 시간/날짜에 따라 크롤링 진행'
-    s_date = parse_date(s_date)
-    e_date = parse_date(e_date)
+def hotel_crawl(driver, s_date: datetime, e_date: datetime, page_idx_=-1):
+    '''
+    입력한 시간/날짜에 따라 크롤링 진행\n
+    page_idx_: 오류 난 페이지. 0에서 3. -1이면 전부 오류 또는 오류 없음
+    '''
+    s_date_str = parse_date(s_date)
+    e_date_str = parse_date(e_date)
 
-    print(f'{s_date}에서 {e_date} 숙박 조회시작')
+    print(f'{s_date_str}에서 {e_date_str} 숙박 조회시작. 페이지: {page_idx_}')
 
     # 날짜 박스 + 시작 + 종료일 클릭
-    try_find_element(driver, (By.CLASS_NAME, 'b91c144835'), (By.XPATH, rf'//*[@data-date="{s_date}"]'), (By.XPATH, rf'//*[@data-date="{e_date}"]'), click=True)
+    try_find_element(driver, (By.CLASS_NAME, 'b91c144835'), (By.XPATH, rf'//*[@data-date="{s_date_str}"]'), (By.XPATH, rf'//*[@data-date="{e_date_str}"]'), click=True)
 
     # 적용하기 클릭
     try_find_element(driver, (By.XPATH, r'//*[@type="submit"]'), click=True)
-    
-    page_num_elements = try_find_element(driver, (By.CSS_SELECTOR, '.fc63351294.f9c5690c58'), find_all=True)
+
+    # 페이지 번호 elements
+    time.sleep(5)
+    # page_num_elements = try_find_element(driver, (By.CSS_SELECTOR, '.fc63351294.f9c5690c58'), find_all=True) # 가끔 notInteractable이나 staleElement 오류 남
 
     # 다음 페이지로 넘김
-    for idx, element in enumerate(page_num_elements[:4]):
-        if idx == 1:
-            pass
+    for page_idx in range(4):
+        if page_idx == 0:
+            # 특정 페이지 오류: page_idx_가 page_idx번째(0번째) 또는 -1이면 진행해야 하므로 pass
+            if page_idx_ in (0, -1):
+                pass
+            # 0번째가 아니고 -1이 아니면
+            else:
+                continue
         else:
-            element.click()
+            # 특정 페이지 오류: page_idx_가 page_idx번째(1,2,3번째)거나 -1이면 진행해야 하므로 pass
+            if page_idx_ in (page_idx, -1):
+                pass
+            else:
+                continue
+            script_scroll_down = 'window.scrollTo(0, document.body.scrollHeight);'
+            driver.execute_script(script_scroll_down)
+            try:
+                element = driver.find_element(By.CSS_SELECTOR, f"button.fc63351294.f9c5690c58[aria-label=' {page_idx+1}']")
+                element.click()
+            except Exception as error:
+                print(f'페이지 넘김 실패. 에러: {error}')
+                with open('failed_times_pages', 'a+', encoding='utf-8') as file:
+                    file.write(','.join([date.strftime(r'%Y-%m-%d %H:%M') for date in (s_date, e_date)]+[str(page_idx)])+'\n')
+                continue
 
         html = driver.page_source
         soup = BeautifulSoup(html, 'html.parser')
 
-        time.sleep(10)
+        time.sleep(15)
         
         hotels = soup.select('.a826ba81c4.fa2f36ad22.afd256fc79.d08f526e0d.ed11e24d01.ef9845d4b3.da89aeb942')
 
-        hotel_csv(hotels, s_date, e_date)
+        hotel_csv(hotels, s_date, e_date, page_idx)
 
 def get_date_combinations(start_date, days=30):
     'start_date부터 days일 후까지 가능한 시작/종료일 조합'
@@ -86,7 +119,7 @@ def get_date_combinations(start_date, days=30):
     combinations_list = list(combinations(date_list, 2))
     return combinations_list
 
-def hotel_csv(soup_elements, s_date, e_date):
+def hotel_csv(soup_elements, s_date, e_date, page_idx):
     'csv로 저장'
     file_name = 'hotels.csv'
     file_exists = False
@@ -100,19 +133,31 @@ def hotel_csv(soup_elements, s_date, e_date):
         pass
 
     data_list = []
-    stay_length_dates = [s_date, e_date]
+    s_date_str = parse_date(s_date)
+    e_date_str = parse_date(e_date)
+    stay_length_dates = [s_date_str, e_date_str]
+    error_count = 0
     for property_card in soup_elements:
-        url = property_card.find('a', class_='e13098a59f')['href'].strip()
-        hotel_name = property_card.select_one('[data-testid="title"]').text.strip()
-        region = property_card.select_one('[data-testid="address"]').text.strip()
-        ratings = float(property_card.select_one('.b5cd09854e.d10a6220b4').text.strip())
-        price = int(property_card.select_one('[data-testid="price-and-discounted-price"]').text.strip().replace(',','').replace('₩',''))
-        data_list.append([url,
-                          hotel_name,
-                          region,
-                          ratings,
-                          price]
-                          + stay_length_dates)
+        try:
+            url = property_card.find('a', class_='e13098a59f')['href'].strip()
+            hotel_name = property_card.select_one('[data-testid="title"]').text.strip()
+            region = property_card.select_one('[data-testid="address"]').text.strip()
+            ratings = float(property_card.select_one('.b5cd09854e.d10a6220b4').text.strip())
+            price = int(property_card.select_one('[data-testid="price-and-discounted-price"]').text.strip().replace(',','').replace('₩',''))
+            data_list.append([url,
+                            hotel_name,
+                            region,
+                            ratings,
+                            price]
+                            +stay_length_dates
+                            +[page_idx])
+        except:
+            error_count += 1
+            if error_count == 25:
+                print('property-card 모두 비어있음')
+                with open('failed_times_pages', 'a+', encoding='utf-8') as file:
+                    file.write(','.join([date.strftime(r'%Y-%m-%d %H:%M') for date in (s_date, e_date)]+[str(page_idx)])+'\n')
+
 
     with open(file_name, 'a+', encoding='utf-8', newline='') as file:
         csv_writer = csv.writer(file, delimiter=';')
@@ -123,7 +168,7 @@ def hotel_csv(soup_elements, s_date, e_date):
 if __name__ == '__main__':
     driver = webdriver.Chrome()
     driver.maximize_window()
-    driver.get(r'https://www.booking.com/searchresults.ko.html?ss=%EC%A0%9C%EC%A3%BC%EB%8F%84%2C+%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD&label=gen173nr-1FCAQoggJCEHNlYXJjaF_soJzso7zrj4RIF1gEaH2IAQGYARe4ARfIAQzYAQHoAQH4AQOIAgGoAgO4At_456UGwAIB0gIkNjZjMzFmMjktN2Q2NC00ZGI3LThlZDAtNTkzYWUzZWExNzNh2AIF4AIB&sid=14dedff24ad71b3922a2f34073ee4036&aid=304142&lang=ko&sb=1&src_elem=sb&src=index&dest_id=4170&dest_type=region&checkin=2023-07-20&checkout=2023-07-21&group_adults=2&no_rooms=1&group_children=0&sb_travel_purpose=leisure')
+    driver.get(r'https://www.booking.com/searchresults.ko.html?ss=%EC%A0%9C%EC%A3%BC%EB%8F%84%2C+%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD&label=gen173nr-1FCAQoggJCEHNlYXJjaF_soJzso7zrj4RIF1gEaH2IAQGYARe4ARfIAQzYAQHoAQH4AQOIAgGoAgO4At_456UGwAIB0gIkNjZjMzFmMjktN2Q2NC00ZGI3LThlZDAtNTkzYWUzZWExNzNh2AIF4AIB&sid=b065785ade8dcdd3291c771274ed42bd&aid=304142&lang=ko&sb=1&src_elem=sb&src=index&dest_id=4170&dest_type=region&ac_position=0&ac_click_type=b&ac_langcode=ko&ac_suggestion_list_length=5&search_selected=true&search_pageview_id=7465539e6ff801f0&ac_meta=GhA3NDY1NTM5ZTZmZjgwMWYwIAAoATICa286BuygnOyjvEAASgBQAA%3D%3D&checkin=2023-07-28&checkout=2023-07-29&group_adults=2&no_rooms=1&group_children=0&sb_travel_purpose=leisure')
     driver.implicitly_wait(3)
 
     s_date = datetime.today() + timedelta(days=1)
