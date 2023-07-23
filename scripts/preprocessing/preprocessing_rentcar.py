@@ -4,7 +4,7 @@
 import pandas as pd
 
 # 불러오기
-file_dir = 'data/raw/raw-cars.csv'
+file_dir = 'data/raw/raw_cars.csv'
 df_cars = pd.read_csv(file_dir)
 df_cars.head()
 
@@ -21,5 +21,5 @@ df_cars['start_date'] = pd.to_datetime(df_cars['start_date'])
 df_cars['end_date'] = pd.to_datetime(df_cars['end_date'])
 
 # 저장
-new_file_path = 'data/preprocessed/preprocessed-cars.csv'
+new_file_path = 'data/preprocessed/preprocessed_cars.csv'
 df_cars.to_csv(new_file_path, index=False)
