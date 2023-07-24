@@ -7,8 +7,10 @@ import datetime
 from webdriver_manager.chrome import ChromeDriverManager
 from selenium.webdriver.chrome.service import Service
 import csv
+import datetime
 
 start = time.time()
+
 
 def crawl(URL): # 크롤링 함수
     driver.get(URL)
@@ -52,11 +54,11 @@ def crawl(URL): # 크롤링 함수
 
     return result
 
-def df_list_append(datas, df, airport):
+def df_list_append(datas, df, city, destination, date):
     for data in datas:
         data.append(date) # 날짜 컬럼 추가
         data.append(dayConvert(date)) # 요일 컬럼 추가
-        data.append(airport) # 공항 컬럼 추가
+        data.append(city + "-" + destination) # 공항 컬럼 추가
         df.loc[len(df)] = data
     return df
 
@@ -84,15 +86,31 @@ driver = webdriver.Chrome(service=service, options=options)
 # driver = webdriver.Chrome(ChromeDriverManager(version="114.0.5735.90").install(), options=options)
 
 
-for date in range(20230720, 20230721): # 20230720~20230820
-    goURL = f'https://flight.naver.com/flights/domestic/GMP-CJU-{date}?adult=1&fareType=Y'
-    backURL = f'https://flight.naver.com/flights/domestic/CJU-GMP-{date}?adult=1&fareType=Y'
-    goDatas = crawl(goURL)
-    df = df_list_append(goDatas, df, 'GMP')
-    backDatas = crawl(backURL)
-    df = df_list_append(backDatas, df, 'CJU')
-        
-    print(date,'데이터 완료')
+# 오늘 날짜를 가져오기
+today = datetime.date.today()
+
+# 내일 날짜를 계산하기
+tomorrow = today + datetime.timedelta(days=1)
+
+# 한 달 후의 날짜를 계산하기
+one_month_later = tomorrow + datetime.timedelta(days=30)
+
+# 날짜 범위를 YYYYMMDD 형식의 정수로 생성하기
+dates = [int((tomorrow + datetime.timedelta(days=i)).strftime('%Y%m%d')) for i in range((one_month_later - tomorrow).days)]
+
+
+# 김포:'GMP', 부산:'PUS', 광주:'KWJ', 무안:'MWX', 대구:'TAE', 여수:'RSU', 울산:'USN', 원주:'WJU', 청주:'CJJ', 포항:'KPO'
+city_list = ['GMP', 'PUS', 'KWJ', 'MWX', 'TAE', 'RSU', 'USN', 'WJU', 'CJJ','KPO']
+
+for date in dates:
+    for city in city_list:
+        goURL = f'https://flight.naver.com/flights/domestic/{city}-CJU-{date}?adult=1&fareType=Y'
+        backURL = f'https://flight.naver.com/flights/domestic/CJU-{city}-{date}?adult=1&fareType=Y'
+        goDatas = crawl(goURL)
+        df = df_list_append(goDatas, df, city, "CJU", date)
+        backDatas = crawl(backURL)
+        df = df_list_append(backDatas, df, "CJU", city, date)
+        print(date, city, '데이터 완료')
 
 driver.quit() # driver 종료
 
@@ -107,10 +125,6 @@ df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
 
 print(df)
 
-df.to_csv('flight_data.csv', index=False, encoding='cp949')
-
-
-
-
+df.to_csv('../../data/raw/flight_data.csv', index=False, encoding='cp949')
 
 

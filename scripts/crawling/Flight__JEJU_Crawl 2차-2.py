@@ -89,15 +89,14 @@ driver = webdriver.Chrome(service=service, options=options)
 # 오늘 날짜를 가져오기
 today = datetime.date.today()
 
-# 내일 날짜를 계산하기
-tomorrow = today + datetime.timedelta(days=1)
-
 # 한 달 후의 날짜를 계산하기
-one_month_later = tomorrow + datetime.timedelta(days=30)
+one_month_later = today + datetime.timedelta(days=30)
+
+# 두 달 후의 날짜를 계산하기
+two_months_later = today + datetime.timedelta(days=60)
 
 # 날짜 범위를 YYYYMMDD 형식의 정수로 생성하기
-dates = [int((tomorrow + datetime.timedelta(days=i)).strftime('%Y%m%d')) for i in range((one_month_later - tomorrow).days)]
-
+dates = [int((one_month_later + datetime.timedelta(days=i)).strftime('%Y%m%d')) for i in range((two_months_later - one_month_later).days)]
 
 # 김포:'GMP', 부산:'PUS', 광주:'KWJ', 무안:'MWX', 대구:'TAE', 여수:'RSU', 울산:'USN', 원주:'WJU', 청주:'CJJ', 포항:'KPO'
 city_list = ['GMP', 'PUS', 'KWJ', 'MWX', 'TAE', 'RSU', 'USN', 'WJU', 'CJJ','KPO']
@@ -125,6 +124,6 @@ df['date'] = pd.to_datetime(df['date'], format='%Y%m%d')
 
 print(df)
 
-df.to_csv('flight_data.csv', index=False, encoding='cp949')
+df.to_csv('../../data/raw/flight_data.csv', index=False, encoding='cp949')
 
 
