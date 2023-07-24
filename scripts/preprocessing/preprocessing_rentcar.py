@@ -12,7 +12,7 @@ df_cars.head()
 # seats 인승 삭제
 df_cars['seats'] = df_cars['seats'].str[:-2].astype(int)
 # age_req 중간에 나이만 표기
-df_cars['age_req'] = df_cars['age_req'].str[1:-2].astype(int)
+df_cars['age_req'] = df_cars['age_req'].str[1:-1].astype(int)
 # driving_experience 숫자만 표기
 df_cars['driving_experice'] = df_cars['driving_experice'].str[:-3]
 
@@ -22,4 +22,4 @@ df_cars['end_date'] = pd.to_datetime(df_cars['end_date'])
 
 # 저장
 new_file_path = 'data/preprocessed/preprocessed_cars.csv'
-df_cars.to_csv(new_file_path, index=False)
+df_cars.to_csv(new_file_path, index=False, sep=';')
