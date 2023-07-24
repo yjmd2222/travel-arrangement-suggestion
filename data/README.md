@@ -2,18 +2,18 @@
 
 ## 항공권 데이터 컬럼 설명
 ```
-name : 항공사 브랜드명
-seat : 항공권 특징(일반, 할인, 특가)
-adult_charge : 성인 1인 기준 항공권 가격
-child_charge : 소아 1인 기준 항공권 가격
-leavehour : 항공편 출발 시각(only hour)
-check : 제주 기준 출발 or 도착 확인 컬럼
-departure : 출발 공항(영어) 
-arrival : 도착 공항(영어)
-departure_kor : 출발 공항(한국어)
-arrival_kor : 도착 공항(한국어)
+name :               항공사 브랜드명
+seat :               항공권 특징(일반, 할인, 특가)
+adult_charge :       성인 1인 기준 항공권 가격
+child_charge :       소아 1인 기준 항공권 가격
+leavehour :          항공편 출발 시각(only hour)
+check :              제주 기준 출발 or 도착 확인 컬럼
+departure :          출발 공항(영어) 
+arrival :            도착 공항(영어)
+departure_kor :      출발 공항(한국어)
+arrival_kor :        도착 공항(한국어)
 departure_datetime : 출발 날짜 및 시간
-arrival_datetime : 도착 날짜 및 시간
+arrival_datetime :   도착 날짜 및 시간
 ```
 
 ## 렌트카 데이터 컬럼 설명
