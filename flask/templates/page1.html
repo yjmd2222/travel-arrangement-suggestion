@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title> 잘 도착했지롱 🌈 </title>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/jquery/latest/jquery.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+        <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+        <link rel="stylesheet" type="text/css" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css" />
+        
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-1BmE4kWBq78iYhFldvKuhfTAU6auU8tT94WrHftjDbrCEXSU1oBoqyl2QvZ6jIW3" crossorigin="anonymous">
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ka7Sk0Gln4gmtz2MlQnikT1wXgYsOg+OMhuP+IlRH9sENBO0LRn5q+8nbTov4+1p" crossorigin="anonymous"></script>
+    <style>
+        body {
+            display: flex; /* Flex 컨테이너로 설정 */
+            flex-direction: column;
+            justify-content: center; /* 가로 가운데 정렬 */
+            align-items: center; /* 세로 가운데 정렬 */
+            background-image: url("{{ url_for('static', filename='background.png') }}");
+            background-size: cover; /* 배경 이미지를 화면에 맞게 조절 */
+            background-repeat: no-repeat; /* 배경 이미지를 반복하지 않음 */
+            background-position: center; /* 배경 이미지를 가운데로 정렬 */
+            background-attachment: fixed;
+        }
+        .daterangepicker-container{
+            text-align: center;
+            padding: 10px;
+        }
+
+        input[type="text"] {
+            width: 250px; /* Set the width as per your preference (e.g., 250px) */
+            height: 25px; /* Set the height as per your preference */
+            font-size: 20px; /* Set the font size to your desired value (e.g., 16px) */
+            text-align: center;
+        }
+        .button-container {
+            justify-content: center;
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            padding: 10px;
+        }
+        .button {
+            width: 300px;
+            margin: 5px;
+        }
+
+        .dropdown-menu {
+            position: relative;
+            display: inline-block;
+            border: none;
+            margin: 10px;
+        }
+
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            min-width: 100%;
+            padding: 20px;
+            border: 1px solid #ccc;
+            z-index: 1;
+            background-color: rgba(255,255,255,0.7);
+        }
+
+        .sub-content {
+            z-index: 2;
+        }
+
+        .select-container {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        select {
+            min-width: 183px;
+        }
+
+        .submit-container {
+            position: fixed;
+            bottom: 150px;
+        }
+    </style>
+</head>
+<body>
+    <h1> 잘 도착했지롱 🌈 </h1>
+    <div class="daterangepicker-container">
+        <h3>여행 기간을 선택해주세요</h3>
+        <input type="text" name="daterange" value="" />
+    </div>
+    <div class="button-container">
+    {% for travel_item, columns in options.items() %}
+    <div class="dropdown-menu {{ travel_item }} outer">
+        <button class="button">{{ travel_item }}</button>
+        <div class="dropdown-content {{ travel_item }} inner">
+            <p>{{ travel_item_emojis[loop.index0] }}{{ travel_item }} 옵션을 선택해주세요{{ travel_item_emojis[loop.index0] }}</p>
+            {% for col_name, values in columns.items() %}
+            <div class="select-container">
+            <div class="col_name {{ col_name }}">
+                <span>{{ col_name }}</span>
+            </div>
+            <select class="col_name {{ col_name }}" onchange="showSubContent('{{ travel_item }}', this.value)">
+                {% if col_name != '금전상황' %}
+                <option value="">선택 안 함</option>
+                {% endif %}
+                {% for value in values %}
+                {% if col_name == '금전상황' and value == '평범' %}
+                <option value="{{ value }}" selected>{{ value }}</option>
+                {% else %}
+                <option value="{{ value }}">{{ value }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+        </div>
+            <br/>
+            {% endfor %}
+            {% if travel_item == '항공권' %}
+            {% for additional_option_name, values in flight_additional_options.items() %}
+            <div class="select-container">
+            <div class="additional_option_name {{ additional_option_name }}">
+                <span>{{ additional_option_name }}</span>
+            </div>
+            <select class="additional_option_name {{ additional_option_name }}" onchange="showSubContent('{{ travel_item }}', this.value)">
+                {% if additional_option_name != '편도/왕복' %}
+                <option value="">선택 안 함</option>
+                {% endif %}
+                {% for value in values %}
+                {% if additional_option_name == '편도/왕복' and value == '왕복' %}
+                <option value="{{ value }}" selected>{{ value }}</option>
+                {% else %}
+                <option value="{{ value }}">{{ value }}</option>
+                {% endif %}
+                {% endfor %}
+            </select>
+            </div>
+            <br/>
+            {% endfor %}
+            {% endif %}
+        </div>
+    </div>
+    {% endfor %}
+    </div>
+
+    <div class="submit-container">
+        <button class="submit">조회하기</button>
+    </div>
+
+    <form id="myForm" method="get" style="display: none;" action="/2페이지">
+        <input type="text" name="input_data" id="inputData">
+        <input type="text" name="additional_input_data" id="additionalInputData">
+    </form>
+    
+    <script>
+        // daterangepicker
+        $(function() {
+            var drp = $('input[name="daterange"]').daterangepicker({
+                opens: 'left'
+            });
+        });
+        // JSON 출력을 위한 이벤트 핸들러 추가
+        document.querySelector(".submit").addEventListener("click", function () {
+            const selectedOptions = {};
+            const additionalSelectedOptions = {};
+            const columnOptions = document.querySelectorAll(".col_name");
+            const additionalOptions = document.querySelectorAll(".additional_option_name");
+
+            columnOptions.forEach((select) => {
+                const travelItem = select.parentElement.parentElement.className.split(" ")[1];
+                const colName = select.className.split(" ")[1];
+                const value = select.value;
+                
+                if (![null, undefined, ''].includes(value)) {
+                    if (!selectedOptions[travelItem]) {
+                        selectedOptions[travelItem] = [];
+                    }
+                    selectedOptions[travelItem].push({col_name: colName, value: value});
+                }
+            });
+
+            additionalOptions.forEach((select) => {
+                const colName = select.className.split(" ")[1];
+                const value = select.value;
+                
+                if (![null, undefined, ''].includes(value)) {
+                    additionalSelectedOptions[colName] = value;
+                }
+            });
+
+            // 선택한 옵션들을 JSON 형태로 출력
+            const dates = $('input[name="daterange"]').val()
+            selectedOptions['dateRange'] = dates
+
+            // Add the data to the hidden form and submit the form
+            document.getElementById("inputData").value = JSON.stringify(selectedOptions);
+            document.getElementById("additionalInputData").value = JSON.stringify(additionalSelectedOptions);
+            // console.log(selectedOptions);
+            // console.log(additionalSelectedOptions);
+            document.getElementById("myForm").submit();
+        });
+
+        // 팝업 드롭다운 메뉴 표시/감추기
+        const dropdownMenus = document.querySelectorAll("button");
+
+        dropdownMenus.forEach((button) => {
+            button.addEventListener("click", (event) => {
+                const dropdownContent = event.target.nextElementSibling;
+                dropdownContent.style.display = dropdownContent.style.display === "block" ? "none" : "block";
+                event.stopPropagation();
+            });
+        });
+
+        // 문서의 다른 부분 클릭 시 드롭다운 메뉴 감추기
+        document.addEventListener("click", (event) => {
+            const allDropdownContents = document.querySelectorAll(".dropdown-content");
+            allDropdownContents.forEach((content) => {
+                // 클릭된 내용과 해당 메뉴의 버튼은 닫지 않도록 처리
+                if (content.contains(event.target) || event.target.classList.contains("sub-menu")) {
+                    return;
+                }
+                content.style.display = "none";
+            });
+        });
+
+        function showSubContent(category, selectedSubmenu) {
+            const subContentPlaceholder = document.querySelector(`.dropdown-content.${category} .sub-content-placeholder`);
+            const selectedSubContent = document.querySelector(`.dropdown-content.${category} .sub-content.${selectedSubmenu}`);
+
+            if (selectedSubContent) {
+                subContentPlaceholder.style.display = "none";
+                selectedSubContent.style.display = "block";
+            } else {
+                subContentPlaceholder.style.display = "block";
+            }
+        }
+    </script>
+</body>
+</html>

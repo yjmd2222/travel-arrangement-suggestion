@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>제주도 날씨와 맛집 정보🍊</title>
+</head>
+<body>
+    <h1>제주도 날씨와 맛집 정보🍊</h1>
+    <p>Location: {{ keyword }}</p>
+
+    <h2> 제주도 날씨 정보 </h2>
+    <pre>{{weather_output }}</pre>
+
+    <h2> 제주도 맛집 정보 </h2>
+    <pre>{{mangoplate_output }}</pre>
+</body>
+</html>
+
+
+<!-- <!DOCTYPE html>
+<html>
+<head>
+    <title>Weather and Mango Data</title>
+</head>
+<body>
+    <h1>Weather Data</h1>
+    <p>Selected dates: {{ start_date }} to {{ end_date }}</p>
+    <div>
+        {{ weather_output|safe }}
+    </div>
+
+    <h1>Restaurant Data</h1>
+    <div>
+        {{ restaurant_output|safe }}
+    </div>
+</body>
+</html> -->
