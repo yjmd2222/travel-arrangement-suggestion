@@ -35,7 +35,7 @@ if __name__ == '__main__':
         import os
         import shutil
         from sys import path
-        path.append('scripts/crawling')
+        path.append('scripts/scraping')
         from crawling_hotel_capacity import hotel_crawl, get_date_combinations
 
         s_date = datetime.today() + timedelta(days=1)
