@@ -169,7 +169,7 @@
          </div>
          <div class="category">
             <h2> 제주도 맛집 정보🍊 </h2>
-            {% if mangoplate_output|length > 0 %} 
+            {% if mangoplate_output|length > 0 %}
             <table class="table table-bordered text-center">
                 <thead class="table-light">
                     {% for key in mangoplate_output[0] %}
@@ -186,6 +186,8 @@
                     {% endfor %}
                 </tbody>
             </table>
+            {% elif mangoplate_output is mapping %}
+            <h3>{{ region }} 근처 음식점을 조회할 수 없습니다. 이용에 불편을 드려 죄송합니다.</h3>
             {% endif %}
          </div>
       </div>

@@ -1,6 +1,6 @@
 import pandas as pd
 
-df = pd.read_csv('weather_DB.csv', encoding='utf-8-sig')
+df = pd.read_csv('../data/preprocessed/weather_DB.csv', encoding='utf-8-sig')
 
 # Convert the 'Day' column to integers
 df['Day'] = df['Day'].astype(int)

@@ -52,7 +52,11 @@
 
     <div class="matrix">
         <div class="category">
-            <h3>항공권</h3>
+            {% if one_way_or_round == '왕복' %}
+            <h3>항공권 - 왕복</h3>
+            {% else %}
+            <h3>항공권 - 편도</h3>
+            {% endif %}
             <div class="subcategory", name="항공권_to">
                 <h4>가는 편</h4>
                 <table class="table text-center">
