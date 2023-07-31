@@ -53,8 +53,6 @@ def page_2_wrap_other_funcs(json_data_raw:dict, additional_options:dict):
     def add_conditions_sql(travel_item, conditions, date_condition):
         '여러 조건문 적용 시 빈 테이블이면 조건 무시'
         sql = f'WITH Step0 AS (SELECT {", ".join(all_columns_kv_2_select[travel_item])} FROM {travel_item} WHERE {date_condition})'
-        if travel_item == '호텔':
-            sql = sql[:-1] + ' GROUP BY hotel_name)'
         idx = 0
         while idx < len(conditions):
             if idx+1 == 1:
@@ -104,7 +102,10 @@ def page_2_wrap_other_funcs(json_data_raw:dict, additional_options:dict):
         if idx == 0:
                 sql += f' SELECT * FROM Step0 ORDER BY {order_by} LIMIT 3'
         else:
-            sql += f''' SELECT * FROM Step{idx}check ORDER BY {order_by} LIMIT 3'''
+            if travel_item == '호텔':
+                sql += f''' SELECT * FROM Step{idx}check GROUP BY hotel_name ORDER BY {order_by} LIMIT 3'''
+            else:
+                sql += f''' SELECT * FROM Step{idx}check ORDER BY {order_by} LIMIT 3'''
         return sql
 
     # print(add_conditions_sql('렌터카', ['brand_name == \'현대\'', 'seats == 5', 'transmission_type == \'수동\'', 'fuel_type == \'휘발유\''], 'start_date == \'2023-07-27 00:00:00\' AND end_date == \'2023-07-28 00:00:00\''))
