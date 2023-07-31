@@ -31,7 +31,7 @@ def selenium_title(combo, func, link, wait, indices=[-1,-1]):
 if __name__ == '__main__':
 
     def parallel_hotel_scraping():
-        '전체 데이터 크롤링'
+        '전체 데이터 스크레이핑'
         import os
         import shutil
         from sys import path
@@ -54,7 +54,7 @@ if __name__ == '__main__':
                 os.remove(fail_logs[idx])
 
     def parallel_hotel_scraping_failed():
-        '실패한 데이터 크롤링 시도'
+        '실패한 데이터 스크레이핑 시도'
         import os
         import shutil
         from sys import path
