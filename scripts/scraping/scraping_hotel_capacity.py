@@ -54,9 +54,9 @@ def try_find_element(driver, *args, click=False, find_all=False):
                 print(f'에러: {type(error).__name__}, 메시지: {error}')
     return None
 
-def hotel_crawl(driver, s_date: datetime, e_date: datetime, page_idx_=-1, cap_idx_=-1):
+def hotel_scrap(driver, s_date: datetime, e_date: datetime, page_idx_=-1, cap_idx_=-1):
     '''
-    입력한 시간/날짜에 따라 크롤링 진행\n
+    입력한 시간/날짜에 따라 스크래이핑 진행\n
     page_idx_: 오류 난 페이지. 0에서 3. -1이면 전부 오류 또는 오류 없음
     '''
     s_date_str = parse_date(s_date)
@@ -194,7 +194,7 @@ if __name__ == '__main__':
     date_combos = get_date_combinations(s_date)
 
     for combo in date_combos:
-        hotel_crawl(driver, combo[0], combo[1])
+        hotel_scrap(driver, combo[0], combo[1])
 
     driver.quit()
 

@@ -30,20 +30,20 @@ def selenium_title(combo, func, link, wait, indices=[-1,-1]):
 
 if __name__ == '__main__':
 
-    def parallel_hotel_crawling():
+    def parallel_hotel_scraping():
         '전체 데이터 크롤링'
         import os
         import shutil
         from sys import path
         path.append('scripts/scraping')
-        from crawling_hotel_capacity import hotel_crawl, get_date_combinations
+        from scraping_hotel_capacity import hotel_scrap, get_date_combinations
 
         s_date = datetime.today() + timedelta(days=1)
         date_combos = get_date_combinations(s_date, 33)
 
         with futures.ThreadPoolExecutor() as executor:
             titles = list(executor.map(lambda x: selenium_title(x,
-                                                                hotel_crawl,
+                                                                hotel_scrap,
                                                                 r'https://www.booking.com/searchresults.ko.html?ss=%EC%A0%9C%EC%A3%BC%EB%8F%84%2C+%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD&label=gen173nr-1FCAQoggJCEHNlYXJjaF_soJzso7zrj4RIF1gEaH2IAQGYARe4ARfIAQzYAQHoAQH4AQOIAgGoAgO4At_456UGwAIB0gIkNjZjMzFmMjktN2Q2NC00ZGI3LThlZDAtNTkzYWUzZWExNzNh2AIF4AIB&sid=b065785ade8dcdd3291c771274ed42bd&aid=304142&lang=ko&sb=1&src_elem=sb&src=index&dest_id=4170&dest_type=region&ac_position=0&ac_click_type=b&ac_langcode=ko&ac_suggestion_list_length=5&search_selected=true&search_pageview_id=7465539e6ff801f0&ac_meta=GhA3NDY1NTM5ZTZmZjgwMWYwIAAoATICa286BuygnOyjvEAASgBQAA%3D%3D&checkin=2023-07-28&checkout=2023-07-29&group_adults=2&no_rooms=1&group_children=0&sb_travel_purpose=leisure',
                                                                 5), date_combos))
         fail_logs = ['failed_times.txt', 'failed_times_pages.txt']
@@ -53,14 +53,14 @@ if __name__ == '__main__':
                 shutil.copy(fail_logs[idx], reloc_failed_logs[idx])
                 os.remove(fail_logs[idx])
 
-    def parallel_hotel_crawling_failed():
+    def parallel_hotel_scraping_failed():
         '실패한 데이터 크롤링 시도'
         import os
         import shutil
         from sys import path
         from datetime import datetime
-        path.append('scripts/crawling')
-        from crawling_hotel_capacity import hotel_crawl
+        path.append('scripts/scraping')
+        from scraping_hotel_capacity import hotel_scrap
 
         def parse_datetime_tuple(s):
             # 문자열을 분리하여 datetime 구성 요소 추출
@@ -82,7 +82,7 @@ if __name__ == '__main__':
 
         with futures.ThreadPoolExecutor() as executor:
             titles = list(executor.map(lambda x, y: selenium_title(x,
-                                                                   hotel_crawl,
+                                                                   hotel_scrap,
                                                                    r'https://www.booking.com/searchresults.ko.html?ss=%EC%A0%9C%EC%A3%BC%EB%8F%84%2C+%EB%8C%80%ED%95%9C%EB%AF%BC%EA%B5%AD&label=gen173nr-1FCAQoggJCEHNlYXJjaF_soJzso7zrj4RIF1gEaH2IAQGYARe4ARfIAQzYAQHoAQH4AQOIAgGoAgO4At_456UGwAIB0gIkNjZjMzFmMjktN2Q2NC00ZGI3LThlZDAtNTkzYWUzZWExNzNh2AIF4AIB&sid=b065785ade8dcdd3291c771274ed42bd&aid=304142&lang=ko&sb=1&src_elem=sb&src=index&dest_id=4170&dest_type=region&ac_position=0&ac_click_type=b&ac_langcode=ko&ac_suggestion_list_length=5&search_selected=true&search_pageview_id=7465539e6ff801f0&ac_meta=GhA3NDY1NTM5ZTZmZjgwMWYwIAAoATICa286BuygnOyjvEAASgBQAA%3D%3D&checkin=2023-07-28&checkout=2023-07-29&group_adults=2&no_rooms=1&group_children=0&sb_travel_purpose=leisure',
                                                                    5,
                                                                    y), date_combos, idx_combos))
@@ -95,5 +95,5 @@ if __name__ == '__main__':
             elif os.path.exists(reloc_fail_logs[idx]):
                 os.remove(reloc_fail_logs[idx])
 
-    # parallel_hotel_crawling()
-    parallel_hotel_crawling_failed()
+    parallel_hotel_scraping()
+    # parallel_hotel_scraping_failed()
