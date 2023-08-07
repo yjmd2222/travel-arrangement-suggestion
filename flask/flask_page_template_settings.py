@@ -52,7 +52,7 @@ hotel_values = [
 #                         '나이제한', '운전경력', '연식', '별점', '리뷰수', '금액', '대여일', '반납일', '금전상황']
 car_select_columns_db = ['금전_상황', 'car_name', 'age_req', 'size', 'seats', 'brand_name', 'fuel_type', 'transmission_type', 'driving_experience', 'year', 'ratings', 'num_ratings', 'price']
 car_select_columns_disp = ['금전상황', '모델명', '나이제한', '차종', '인승', '브랜드', '연료', '오토/스틱', '운전경력', '연식', '별점', '리뷰수', '금액']
-car_columns_db = [ '금전_상황', 'age_req', 'size', 'seats','brand_name', 'fuel_type', 'transmission_type', 'driving_experience']
+car_columns_db = ['금전_상황', 'age_req', 'size', 'seats','brand_name', 'fuel_type', 'transmission_type', 'driving_experience']
 car_columns_disp = ['금전상황', '나이제한', '차종', '인승', '브랜드', '연료', '오토/스틱', '운전경력']
 car_columns_kv = {tuple_[0]: tuple_[1] for tuple_ in zip(car_columns_disp,car_columns_db)}
 car_values = [
