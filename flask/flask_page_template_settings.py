@@ -14,9 +14,9 @@ finance_situation = ['자린고비', '가성비', '평범', '욜로', '플렉스
 #                          'departure_datetime', 'arrival_datetime', 'direction', 'child_charge', 'departure_kor', 'arrival_kor', '금전_상황']
 # flight_select_columns_disp = ['항공사', '표_종류', '성인요금', '출발시간(hour)', '출발공항(코드)', '도착공항(코드)',
 #                            '출발시간(datetime)', '도착시간(datetime)', '제주도로_come_back', '아동요금', '출발공항(이름)', '도착공항(이름)', '금전상황']
-flight_select_columns_db = ['금전_상황', 'name', 'departure_kor', 'arrival_kor', 'departure', 'arrival', 'departure_datetime', 'arrival_datetime', 'leavehour', 'direction', 'seat', 'adult_charge', 'child_charge'] # 이 둘 현재 각각 사용되어서, 같은 칼럼이나 순서 달라도 됨
+flight_select_columns_db = ['금전_상황', 'name', 'departure_kor', 'arrival_kor', 'departure', 'arrival', 'departure_datetime', 'arrival_datetime', 'leavehour', 'direction', 'seat', 'adult_charge', 'child_charge'] # select from sql
 flight_select_columns_disp = ['금전상황', '항공사', '출발공항(이름)', '도착공항(이름)', '출발공항(코드)', '도착공항(코드)', '출발시간(datetime)', '도착시간(datetime)', '출발시간(hour)', '어디로갈까', '항공권 종류_', '성인요금', '아동요금']
-flight_columns_db = ['금전_상황', 'departure_kor','name' ]
+flight_columns_db = ['금전_상황', 'departure_kor','name'] # html 선택 옵션 칼럼
 flight_columns_disp = ['금전상황', '출발공항', '항공사']
 flight_columns_kv = {tuple_[0]: tuple_[1] for tuple_ in zip(flight_columns_disp,flight_columns_db)}
 flight_values = [
@@ -33,8 +33,8 @@ flight_values = [
 # hotel_select_columns_disp = ['숙박시설명', '지역(세부)', '별점', '금액', '체크인', '체크아웃', '인원수', '지역(간소)', '금전상황']
 hotel_select_columns_db = ['금전_상황', 'hotel_name', 'capacity', 'region', 'new_region', 'ratings', 'price']
 hotel_select_columns_disp = ['금전상황', '숙박시설', '인원수', '지역', 'new_region', '별점', '금액']
-hotel_columns_db = ['금전_상황', 'region', 'capacity' ]
-hotel_columns_disp = ['금전상황', '지역','인원수' ]
+hotel_columns_db = ['금전_상황', 'region', 'capacity']
+hotel_columns_disp = ['금전상황', '지역','인원수']
 hotel_columns_kv = {tuple_[0]: tuple_[1] for tuple_ in zip(hotel_columns_disp,hotel_columns_db)}
 hotel_values = [
     finance_situation,
@@ -53,7 +53,7 @@ hotel_values = [
 car_select_columns_db = ['금전_상황', 'car_name', 'age_req', 'size', 'seats', 'brand_name', 'fuel_type', 'transmission_type', 'driving_experience', 'year', 'ratings', 'num_ratings', 'price']
 car_select_columns_disp = ['금전상황', '모델명', '나이제한', '차종', '인승', '브랜드', '연료', '오토/스틱', '운전경력', '연식', '별점', '리뷰수', '금액']
 car_columns_db = [ '금전_상황', 'age_req', 'size', 'seats','brand_name', 'fuel_type', 'transmission_type', 'driving_experience']
-car_columns_disp = ['금전상황', '나이제한', '차종', '인승', '브랜드', '연료', '오토/스틱', '운전경력' ]
+car_columns_disp = ['금전상황', '나이제한', '차종', '인승', '브랜드', '연료', '오토/스틱', '운전경력']
 car_columns_kv = {tuple_[0]: tuple_[1] for tuple_ in zip(car_columns_disp,car_columns_db)}
 car_values = [
     finance_situation,
